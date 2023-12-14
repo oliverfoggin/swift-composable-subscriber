@@ -1,7 +1,7 @@
 import ComposableArchitecture
 
 extension Reducer {
-	func subscribe<TriggerAction, T>(
+	public func subscribe<TriggerAction, T>(
 		on triggerAction: CaseKeyPath<Action, TriggerAction>,
 		to stream: @escaping () async throws -> AsyncStream<T>,
 		with responseAction: CaseKeyPath<Action, T>
@@ -15,7 +15,7 @@ extension Reducer {
 	}
 }
 
-struct _SubscribeReducer<Parent: Reducer, TriggerAction, T>: Reducer {
+public struct _SubscribeReducer<Parent: Reducer, TriggerAction, T>: Reducer {
 	@usableFromInline
 	let parent: Parent
 
@@ -40,7 +40,7 @@ struct _SubscribeReducer<Parent: Reducer, TriggerAction, T>: Reducer {
 		self.responseAction = AnyCasePath(responseAction)
 	}
 
-	func reduce(into state: inout Parent.State, action: Parent.Action) -> Effect<Parent.Action> {
+	public func reduce(into state: inout Parent.State, action: Parent.Action) -> Effect<Parent.Action> {
 		let effects = parent.reduce(into: &state, action: action)
 
 		guard self.triggerAction.extract(from: action) != nil else {
