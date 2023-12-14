@@ -3,7 +3,21 @@ import SwiftUI
 
 extension Reducer {
 	public func subscribe<TriggerAction, StreamElement>(
-		to stream: @escaping () async -> AsyncStream<StreamElement>,
+		to stream: @escaping @Sendable () async -> AsyncStream<StreamElement>,
+		on triggerAction: CaseKeyPath<Action, TriggerAction>,
+		operation: @escaping @Sendable (_ send: Send<Action>, StreamElement) async throws -> Void
+	) -> _SubscribeReducer<Self, TriggerAction, StreamElement, StreamElement> {
+		.init(
+			parent: self,
+			on: triggerAction,
+			to: stream,
+			with: .operation(f: operation),
+			transform: { $0 }
+		)
+	}
+
+	public func subscribe<TriggerAction, StreamElement>(
+		to stream: @escaping @Sendable () async -> AsyncStream<StreamElement>,
 		on triggerAction: CaseKeyPath<Action, TriggerAction>,
 		with responseAction: CaseKeyPath<Action, StreamElement>,
 		animation: Animation? = nil
@@ -12,28 +26,32 @@ extension Reducer {
 			parent: self,
 			on: triggerAction,
 			to: stream,
-			with: responseAction,
-			animation: animation,
+			with: .action(action: AnyCasePath(responseAction), animation: animation),
 			transform: { $0 }
 		)
 	}
 
 	public func subscribe<TriggerAction, StreamElement, Value>(
-		to stream: @escaping () async -> AsyncStream<StreamElement>,
+		to stream: @escaping @Sendable () async -> AsyncStream<StreamElement>,
 		on triggerAction: CaseKeyPath<Action, TriggerAction>,
 		with responseAction: CaseKeyPath<Action, Value>,
 		animation: Animation? = nil,
-		transform: @escaping (StreamElement) -> Value
+		transform: @escaping @Sendable (StreamElement) -> Value
 	) -> _SubscribeReducer<Self, TriggerAction, StreamElement, Value> {
 		.init(
 			parent: self,
 			on: triggerAction,
 			to: stream,
-			with: responseAction,
-			animation: animation,
+			with: .action(action: AnyCasePath(responseAction), animation: animation),
 			transform: transform
 		)
 	}
+}
+
+@usableFromInline
+enum Operation<Action, Value, StreamElement> {
+	case action(action: AnyCasePath<Action, Value>, animation: Animation?)
+	case operation(f: (_ send: Send<Action>, Value) async throws -> Void)
 }
 
 public struct _SubscribeReducer<Parent: Reducer, TriggerAction, StreamElement, Value>: Reducer {
@@ -47,28 +65,23 @@ public struct _SubscribeReducer<Parent: Reducer, TriggerAction, StreamElement, V
 	let stream: () async -> AsyncStream<StreamElement>
 
 	@usableFromInline
-	let responseAction: AnyCasePath<Parent.Action, Value>
+	let operation: Operation<Parent.Action, Value, StreamElement>
 
 	@usableFromInline
 	let transform: (StreamElement) -> Value
 
-	@usableFromInline
-	let animation: Animation?
-
 	init(
 		parent: Parent,
 		on triggerAction: CaseKeyPath<Parent.Action, TriggerAction>,
-		to stream: @escaping () async -> AsyncStream<StreamElement>,
-		with responseAction: CaseKeyPath<Parent.Action, Value>,
-		animation: Animation?,
-		transform: @escaping (StreamElement) -> Value
+		to stream: @escaping @Sendable () async -> AsyncStream<StreamElement>,
+		with operation: Operation<Parent.Action, Value, StreamElement>,
+		transform: @escaping @Sendable (StreamElement) -> Value
 	) {
 		self.parent = parent
 		self.triggerAction = AnyCasePath(triggerAction)
 		self.stream = stream
-		self.responseAction = AnyCasePath(responseAction)
-		self.animation = animation
 		self.transform = transform
+		self.operation = operation
 	}
 
 	public func reduce(into state: inout Parent.State, action: Parent.Action) -> Effect<Parent.Action> {
@@ -82,7 +95,12 @@ public struct _SubscribeReducer<Parent: Reducer, TriggerAction, StreamElement, V
 			effects,
 			.run { send in
 				for await value in await stream() {
-					await send(responseAction.embed(transform(value)), animation: animation)
+					switch operation {
+					case .action(let action, let animation):
+						await send(action.embed(transform(value)), animation: animation)
+					case .operation(let f):
+						try await f(send, transform(value))
+					}
 				}
 			}
 		)
