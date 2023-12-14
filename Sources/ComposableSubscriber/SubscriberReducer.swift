@@ -5,20 +5,6 @@ extension Reducer {
 	public func subscribe<TriggerAction, StreamElement>(
 		to stream: @escaping @Sendable () async -> AsyncStream<StreamElement>,
 		on triggerAction: CaseKeyPath<Action, TriggerAction>,
-		operation: @escaping @Sendable (_ send: Send<Action>, StreamElement) async throws -> Void
-	) -> _SubscribeReducer<Self, TriggerAction, StreamElement, StreamElement> {
-		.init(
-			parent: self,
-			on: triggerAction,
-			to: stream,
-			with: .operation(f: operation),
-			transform: { $0 }
-		)
-	}
-
-	public func subscribe<TriggerAction, StreamElement>(
-		to stream: @escaping @Sendable () async -> AsyncStream<StreamElement>,
-		on triggerAction: CaseKeyPath<Action, TriggerAction>,
 		with responseAction: CaseKeyPath<Action, StreamElement>,
 		animation: Animation? = nil
 	) -> _SubscribeReducer<Self, TriggerAction, StreamElement, StreamElement> {
@@ -46,10 +32,24 @@ extension Reducer {
 			transform: transform
 		)
 	}
+
+	public func subscribe<TriggerAction, StreamElement>(
+		to stream: @escaping @Sendable () async -> AsyncStream<StreamElement>,
+		on triggerAction: CaseKeyPath<Action, TriggerAction>,
+		operation: @escaping @Sendable (_ send: Send<Action>, StreamElement) async throws -> Void
+	) -> _SubscribeReducer<Self, TriggerAction, StreamElement, StreamElement> {
+		.init(
+			parent: self,
+			on: triggerAction,
+			to: stream,
+			with: .operation(f: operation),
+			transform: { $0 }
+		)
+	}
 }
 
 @usableFromInline
-enum Operation<Action, Value, StreamElement> {
+enum Operation<Action, Value> {
 	case action(action: AnyCasePath<Action, Value>, animation: Animation?)
 	case operation(f: (_ send: Send<Action>, Value) async throws -> Void)
 }
@@ -65,7 +65,7 @@ public struct _SubscribeReducer<Parent: Reducer, TriggerAction, StreamElement, V
 	let stream: () async -> AsyncStream<StreamElement>
 
 	@usableFromInline
-	let operation: Operation<Parent.Action, Value, StreamElement>
+	let operation: Operation<Parent.Action, Value>
 
 	@usableFromInline
 	let transform: (StreamElement) -> Value
@@ -74,7 +74,7 @@ public struct _SubscribeReducer<Parent: Reducer, TriggerAction, StreamElement, V
 		parent: Parent,
 		on triggerAction: CaseKeyPath<Parent.Action, TriggerAction>,
 		to stream: @escaping @Sendable () async -> AsyncStream<StreamElement>,
-		with operation: Operation<Parent.Action, Value, StreamElement>,
+		with operation: Operation<Parent.Action, Value>,
 		transform: @escaping @Sendable (StreamElement) -> Value
 	) {
 		self.parent = parent
