@@ -2,8 +2,8 @@ import ComposableArchitecture
 
 extension Reducer {
 	public func subscribe<TriggerAction, T>(
+		to stream: @escaping () async -> AsyncStream<T>,
 		on triggerAction: CaseKeyPath<Action, TriggerAction>,
-		to stream: @escaping () async throws -> AsyncStream<T>,
 		with responseAction: CaseKeyPath<Action, T>
 	) -> _SubscribeReducer<Self, TriggerAction, T> {
 		.init(
@@ -23,7 +23,7 @@ public struct _SubscribeReducer<Parent: Reducer, TriggerAction, T>: Reducer {
 	let triggerAction: AnyCasePath<Parent.Action, TriggerAction>
 
 	@usableFromInline
-	let stream: () async throws -> AsyncStream<T>
+	let stream: () async -> AsyncStream<T>
 
 	@usableFromInline
 	let responseAction: AnyCasePath<Parent.Action, T>
@@ -31,7 +31,7 @@ public struct _SubscribeReducer<Parent: Reducer, TriggerAction, T>: Reducer {
 	init(
 		parent: Parent,
 		on triggerAction: CaseKeyPath<Parent.Action, TriggerAction>,
-		to stream: @escaping () async throws -> AsyncStream<T>,
+		to stream: @escaping () async -> AsyncStream<T>,
 		with responseAction: CaseKeyPath<Parent.Action, T>
 	) {
 		self.parent = parent
@@ -50,7 +50,7 @@ public struct _SubscribeReducer<Parent: Reducer, TriggerAction, T>: Reducer {
 		return .merge(
 			effects,
 			.run { send in
-				for await value in try await stream() {
+				for await value in await stream() {
 					await send(responseAction.embed(value))
 				}
 			}
