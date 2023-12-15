@@ -60,6 +60,6 @@ Reduce {
 }
 .subscribe(to: myDependency.stream, on: \.some.trigger.action) { send, streamElement in
   await send(.responseAction)
-  await otherDependency.doSomethingElse()
+  await otherDependency.doSomethingElse(with: streamElement)
 }
 ``` 
