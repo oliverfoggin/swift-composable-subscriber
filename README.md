@@ -33,7 +33,11 @@ If the `AsyncStream` `Element` type is the same as the input type of the respons
 Reduce {
  // your usual reducer here
 }
-.subscribe(to: myDependency.stream, on: \.some.trigger.action, with: \.some.response.actionThatTakesStreamElement)
+.subscribe(
+  to: myDependency.stream,
+  on: \.some.trigger.action,
+  with: \.some.response.actionThatTakesStreamElement
+)
 ``` 
 
 # If the type doesn't match
@@ -44,7 +48,11 @@ If the stream `Element` type needs to be transformed you can do:
 Reduce {
  // your usual reducer here
 }
-.subscribe(to: myDependency.stream, on: \.some.trigger.action, with: \.response.actionThatTakesAString) { streamElement in
+.subscribe(
+  to: myDependency.stream,
+  on: \.some.trigger.action,
+  with: \.response.actionThatTakesAString
+) { streamElement in
   // return some type created from the streamElement
   "\(streamElement)"
 }
@@ -58,7 +66,10 @@ If you don't necessarily need a response action but you want to do something els
 Reduce {
  // your usual reducer here
 }
-.subscribe(to: myDependency.stream, on: \.some.trigger.action) { send, streamElement in
+.subscribe(
+  to: myDependency.stream,
+  on: \.some.trigger.action
+) { send, streamElement in
   await send(.responseAction)
   await otherDependency.doSomethingElse(with: streamElement)
 }
