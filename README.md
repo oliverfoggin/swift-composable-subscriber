@@ -6,7 +6,7 @@ A common pattern in our app for shared data is to create a dependency that expos
 
 Then in the `Reducer` on a `task` action we can do soemthing like...
 
-```
+```swift
 Reduce { state, action in
   switch action {
   case .task:
@@ -29,7 +29,7 @@ Any dependency that returns an `AsyncStream` can be subscribed to in the followi
 
 If the `AsyncStream` `Element` type is the same as the input type of the response action you can just do:
 
-```
+```swift
 Reduce {
  // your usual reducer here
 }
@@ -44,7 +44,7 @@ Reduce {
 
 If the stream `Element` type needs to be transformed you can do:
 
-```
+```swift
 Reduce {
  // your usual reducer here
 }
@@ -62,7 +62,7 @@ Reduce {
 
 If you don't necessarily need a response action but you want to do something else like running another dependency or something. You can do:
 
-```
+```swift
 Reduce {
  // your usual reducer here
 }
