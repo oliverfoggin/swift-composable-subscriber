@@ -57,21 +57,15 @@ struct ReducerWithArg {
   @Dependency(\.numberClient) var numberClient
   
   var body: some Reducer<State, Action> {
-    Reduce<State, Action> { state, action in
-      switch action {
-      case let .receive(number):
-        state.currentNumber = number
-        return .none
-      case .task:
-        return .none
-      }
-    }
-    .subscribe(
-      using: \.number,
-      to: numberClient.numberStreamWithArg,
-      on: \.task,
-      with: \.receive
-    )
+
+    EmptyReducer()
+      .onReceive(action: \.receive, set: \.currentNumber)
+      .subscribe(
+        to: numberClient.numberStreamWithArg, 
+        using: \.number,
+        on: \.task,
+        with: \.receive
+      )
   }
 }
 
@@ -84,23 +78,16 @@ struct ReducerWithTransform {
   @Dependency(\.numberClient) var numberClient
   
   var body: some Reducer<State, Action> {
-    Reduce<State, Action> { state, action in
-      switch action {
-      case let .receive(number):
-        state.currentNumber = number
-        return .none
-      case .task:
-        return .none
+    EmptyReducer()
+      .onReceive(action: \.receive, set: \.currentNumber)
+      .subscribe(
+        to: numberClient.numberStreamWithArg,
+        using: \.number,
+        on: \.task,
+        with: \.receive
+      ) {
+        $0 * 2
       }
-    }
-    .subscribe(
-      using: \.number,
-      to: numberClient.numberStreamWithArg,
-      on: \.task,
-      with: \.receive
-    ) {
-      $0 * 2
-    }
   }
 }
 
