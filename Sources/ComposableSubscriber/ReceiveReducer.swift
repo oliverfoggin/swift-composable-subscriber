@@ -80,23 +80,27 @@ extension Reducer {
 }
 
 public enum OnFailAction<State> {
-  case xctFail
+  case xctFail(prefix: String? = nil)
   case handle((inout State, Error) -> Void)
   
   @usableFromInline
   func callAsFunction(state: inout State, error: Error) {
     switch self {
-    case .xctFail:
-      XCTFail("\(error)")
+    case let .xctFail(prefix):
+      if let prefix {
+        XCTFail("\(prefix): \(error)")
+      } else {
+        XCTFail("\(error)")
+      }
     case let .handle(handler):
       handler(&state, error)
     }
   }
 }
 
-fileprivate extension WritableKeyPath {
+extension WritableKeyPath {
   
-  func callAsFunction(root: inout Root, value: Value) {
+  public func callAsFunction(root: inout Root, value: Value) {
     root[keyPath: self] = value
   }
   
