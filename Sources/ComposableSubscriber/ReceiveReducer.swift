@@ -29,8 +29,8 @@ extension Reducer {
   
   public func onReceive<V>(
     action toReceiveAction: CaseKeyPath<Action, TaskResult<V>>,
-    onSuccess setAction: @escaping (inout State, V) -> Void,
-    onFail: OnFailAction<State>? = nil
+    onFail: OnFailAction<State>? = nil,
+    onSuccess setAction: @escaping (inout State, V) -> Void
   ) -> _ReceiveReducer<Self, TaskResult<V>> {
     self.onReceive(action: toReceiveAction) { state, result in
       switch result {
@@ -46,7 +46,7 @@ extension Reducer {
   
   public func onReceive<V>(
     action toReceiveAction: CaseKeyPath<Action, TaskResult<V>>,
-    onSuccess toStateKeyPath: WritableKeyPath<State, V>,
+    set toStateKeyPath: WritableKeyPath<State, V>,
     onFail: OnFailAction<State>? = nil
   ) -> _ReceiveReducer<Self, TaskResult<V>> {
     self.onReceive(action: toReceiveAction) { state, result in
@@ -63,7 +63,7 @@ extension Reducer {
   
   public func onReceive<V>(
     action toReceiveAction: CaseKeyPath<Action, TaskResult<V>>,
-    onSuccess toStateKeyPath: WritableKeyPath<State, V?>,
+    set toStateKeyPath: WritableKeyPath<State, V?>,
     onFail: OnFailAction<State>? = nil
   ) -> _ReceiveReducer<Self, TaskResult<V>> {
     self.onReceive(action: toReceiveAction) { state, result in
