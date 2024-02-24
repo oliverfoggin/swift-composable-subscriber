@@ -134,14 +134,14 @@ extension Reducer {
   /// ```
   ///
   /// - Parameters:
-  ///   - toStreamArgument: The argument used to invoke the stream with.
   ///   - stream: The async stream to subscribe to on the reducer
+  ///   - toStreamArgument: The argument used to invoke the stream with.
   ///   - triggerAction: The action to invoke the stream when received.
   ///   - responseAction: The action to invoke with the streamed elements.
   ///   - animation: Optional animation used when elements are received.
   public func subscribe<TriggerAction, StreamElement, StreamArgument>(
-    using toStreamArgument: @escaping @Sendable (State) -> StreamArgument,
     to stream: @escaping @Sendable (StreamArgument) async -> AsyncStream<StreamElement>,
+    using toStreamArgument: @escaping @Sendable (State) -> StreamArgument,
     on triggerAction: CaseKeyPath<Action, TriggerAction>,
     with responseAction: CaseKeyPath<Action, StreamElement>,
     animation: Animation? = nil
@@ -294,14 +294,14 @@ extension Reducer {
   /// ```
   ///
   /// - Parameters:
-  ///   - toStreamArgument: The argument used to invoke the stream with.
   ///   - stream: The async stream to subscribe to on the reducer
+  ///   - toStreamArgument: The argument used to invoke the stream with.
   ///   - triggerAction: The action to invoke the stream when received.
   ///   - responseAction: The action to invoke with the streamed elements.
   ///   - animation: Optional animation used when elements are received.
   public func subscribe<TriggerAction, StreamElement, Value, StreamArgument>(
-    using toStreamArgument: @escaping @Sendable (State) -> StreamArgument,
     to stream: @escaping @Sendable (StreamArgument) async -> AsyncStream<StreamElement>,
+    using toStreamArgument: @escaping @Sendable (State) -> StreamArgument,
     on triggerAction: CaseKeyPath<Action, TriggerAction>,
     with responseAction: CaseKeyPath<Action, Value>,
     animation: Animation? = nil,
@@ -455,14 +455,14 @@ extension Reducer {
   /// ```
   ///
   /// - Parameters:
-  ///   - toStreamArgument: The argument used to invoke the stream with.
   ///   - stream: The async stream to subscribe to on the reducer
+  ///   - toStreamArgument: The argument used to invoke the stream with.
   ///   - triggerAction: The action to invoke the stream when received.
   ///   - responseAction: The action to invoke with the streamed elements.
   ///   - animation: Optional animation used when elements are received.
   public func subscribe<TriggerAction, StreamElement, StreamArgument>(
-    using toStreamArgument: @escaping @Sendable (State) -> StreamArgument,
     to stream: @escaping @Sendable (StreamArgument) async -> AsyncStream<StreamElement>,
+    using toStreamArgument: @escaping @Sendable (State) -> StreamArgument,
     on triggerAction: CaseKeyPath<Action, TriggerAction>,
     operation: @escaping @Sendable (_ send: Send<Action>, StreamElement) async throws -> Void
   ) -> _SubscribeReducer<Self, TriggerAction, StreamElement, StreamElement> {
